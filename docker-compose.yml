@@ -1,0 +1,16 @@
+services:
+  next-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: balungpisah-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://core.balungpisah.id
+    restart: always
+
+networks:
+  default:
+    name: nextjs-network

@@ -108,7 +108,6 @@ export function formatNumber(num: number): string {
   return new Intl.NumberFormat('id-ID').format(num);
 }
 
-export function formatPercentage(value: number, total: number): string {
-  if (total === 0) return '0%';
-  return `${Math.round((value / total) * 100)}%`;
+export function formatPercentage(value: number, total: number = 100) { 
+  return (value / total) * 100; 
 }

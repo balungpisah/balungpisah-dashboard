@@ -23,9 +23,8 @@ export default function SettingsPage() {
 
       if (response.success) {
         setConfigs(response.data || []);
-        // Initialize edited values
         const initialValues: Record<string, number> = {};
-        (response.data || []).forEach((config) => {
+        (response.data || []).forEach((config: { key: string; value: number }) => {
           initialValues[config.key] = config.value;
         });
         setEditedValues(initialValues);

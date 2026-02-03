@@ -174,7 +174,7 @@ export default function IndonesiaMap({
           onMoveEnd={setPosition}
         >
           <Geographies geography={INDO_GEO_URL}>
-            {({ geographies }) =>
+            {({ geographies }: { geographies: any[] }) =>
               geographies.map((geo) => {
                 const geoName = geo.properties.PROVINSI || geo.properties.NAME_1;
                 const heat = provinceHeat.find((h: any) => 
