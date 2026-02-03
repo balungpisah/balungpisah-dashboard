@@ -107,16 +107,39 @@ class ApiClient {
     return response.data;
   }
 
-  // Reports
-  async getReports(page: number = 1, pageSize: number = 10) {
-    const response = await this.client.get('/api/dashboard/reports', {
-      params: { page, page_size: pageSize },
+  async getReports(filters?: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    fromDate?: string;
+    toDate?: string;
+    search?: string;
+    userId?: string;
+    platform?: string;
+    hasAttachments?: boolean;
+    sortBy?: string;
+    sort?: string;
+  }) {
+    const response = await this.client.get('/api/admin/reports', {
+      params: {
+        page: filters?.page || 1,
+        page_size: filters?.pageSize || 10,
+        status: filters?.status,
+        from_date: filters?.fromDate,
+        to_date: filters?.toDate,
+        search: filters?.search,
+        user_id: filters?.userId,
+        platform: filters?.platform,
+        has_attachments: filters?.hasAttachments,
+        sort_by: filters?.sortBy,
+        sort: filters?.sort,
+      },
     });
     return response.data;
   }
 
   async getReport(id: string) {
-    const response = await this.client.get(`/api/dashboard/reports/${id}`);
+    const response = await this.client.get(`/api/admin/reports/${id}`);
     return response.data;
   }
 
@@ -128,14 +151,97 @@ class ApiClient {
     return response.data;
   }
 
-  // Tickets
-  async getTickets() {
-    const response = await this.client.get('/api/tickets');
+  async getTickets(filters?: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    fromDate?: string;
+    toDate?: string;
+    search?: string;
+    userId?: string;
+    platform?: string;
+    hasError?: boolean;
+    sortBy?: string;
+    sort?: string;
+  }) {
+    const response = await this.client.get('/api/admin/tickets', {
+      params: {
+        page: filters?.page || 1,
+        page_size: filters?.pageSize || 10,
+        status: filters?.status,
+        from_date: filters?.fromDate,
+        to_date: filters?.toDate,
+        search: filters?.search,
+        user_id: filters?.userId,
+        platform: filters?.platform,
+        has_error: filters?.hasError,
+        sort_by: filters?.sortBy,
+        sort: filters?.sort,
+      },
+    });
     return response.data;
   }
 
   async getTicket(id: string) {
-    const response = await this.client.get(`/api/tickets/${id}`);
+    const response = await this.client.get(`/api/admin/tickets/${id}`);
+    return response.data;
+  }
+
+  async getContributors(filters?: {
+    page?: number;
+    pageSize?: number;
+    submissionType?: string;
+    fromDate?: string;
+    toDate?: string;
+    search?: string;
+    city?: string;
+    sort?: string;
+  }) {
+    const response = await this.client.get('/api/admin/contributors', {
+      params: {
+        page: filters?.page || 1,
+        page_size: filters?.pageSize || 10,
+        submission_type: filters?.submissionType,
+        from_date: filters?.fromDate,
+        to_date: filters?.toDate,
+        search: filters?.search,
+        city: filters?.city,
+        sort: filters?.sort,
+      },
+    });
+    return response.data;
+  }
+
+  async getContributor(id: string) {
+    const response = await this.client.get(`/api/admin/contributors/${id}`);
+    return response.data;
+  }
+
+  async getExpectations(filters?: {
+    page?: number;
+    pageSize?: number;
+    hasEmail?: boolean;
+    fromDate?: string;
+    toDate?: string;
+    search?: string;
+    sort?: string;
+  }) {
+    const response = await this.client.get('/api/admin/expectations', {
+      params: {
+        page: filters?.page || 1,
+        page_size: filters?.pageSize || 10,
+        has_email: filters?.hasEmail,
+        from_date: filters?.fromDate,
+        to_date: filters?.toDate,
+        search: filters?.search,
+        sort: filters?.sort,
+      },
+    });
+    return response.data;
+  }
+
+  async getExpectation(id: string) {
+    const response = await this.client.get(`/api/admin/expectations/${id}`);
     return response.data;
   }
 
@@ -179,6 +285,12 @@ class ApiClient {
     });
     return response.data;
   }
+  
+  async getMapMarkers() {
+    const response = await this.client.get('/api/dashboard/map-data');
+    return response.data;
+  }
+
 }
 
 export const apiClient = new ApiClient();

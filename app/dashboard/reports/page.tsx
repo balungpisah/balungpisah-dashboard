@@ -11,37 +11,42 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import { DashboardReport } from '@/lib/types';
+import { AdminReportDto } from '@/lib/types';
 import {
   formatDate,
   getStatusColor,
   getStatusLabel,
-  truncate,
   formatNumber,
 } from '@/lib/utils';
 
 export default function ReportsPage() {
-  const [reports, setReports] = useState<DashboardReport[]>([]);
+  const [reports, setReports] = useState<AdminReportDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const pageSize = 20;
 
   useEffect(() => {
     loadReports();
-  }, [page]);
+  }, [page, statusFilter]);
 
   const loadReports = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getReports(page, pageSize);
+      const response = await apiClient.getReports({
+        page,
+        pageSize,
+        search: searchTerm || undefined,
+        status: statusFilter || undefined,
+      });
 
       if (response.success) {
         setReports(response.data || []);
         setTotalPages(response.meta?.total_pages || 1);
-        setTotalItems(response.meta?.total_items || 0);
+        setTotalItems(response.meta?.total || 0);
       }
     } catch (error) {
       console.error('Failed to load reports:', error);
@@ -50,10 +55,13 @@ export default function ReportsPage() {
     }
   };
 
-  const filteredReports = reports.filter((report) =>
-    report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    report.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    loadReports();
+  };
+
+  const filteredReports = reports;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -73,24 +81,36 @@ export default function ReportsPage() {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search reports..."
+                placeholder="Search by reference number or title..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input pl-11"
               />
             </div>
           </div>
-          <button className="btn-secondary flex items-center gap-2 whitespace-nowrap">
-            <Filter className="w-4 h-4" />
-            Filters
-          </button>
-        </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            className="input min-w-[180px]"
+          >
+            <option value="">All Statuses</option>
+            <option value="draft">Draft</option>
+            <option value="pending">Pending</option>
+            <option value="verified">Verified</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </form>
       </div>
 
       {/* Table */}
@@ -100,16 +120,22 @@ export default function ReportsPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Report
+                  Reference
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Status
+                  Title
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Categories
+                  Category
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Location
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Platform
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Status
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Date
@@ -122,7 +148,7 @@ export default function ReportsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
                     </div>
@@ -130,7 +156,7 @@ export default function ReportsPage() {
                 </tr>
               ) : filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     No reports found
                   </td>
                 </tr>
@@ -138,46 +164,39 @@ export default function ReportsPage() {
                 filteredReports.map((report) => (
                   <tr key={report.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="max-w-md">
-                        <p className="font-medium text-gray-900 mb-1">{report.title}</p>
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {truncate(report.description, 100)}
-                        </p>
+                      <span className="font-mono text-sm text-gray-900">
+                        {report.reference_number || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-gray-900">
+                        {report.title || 'Untitled Report'}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-gray-700">
+                          {report.primary_category || 'Uncategorized'}
+                        </span>
+                        {report.category_count > 1 && (
+                          <span className="badge bg-gray-100 text-gray-600 text-xs">
+                            +{report.category_count - 1}
+                          </span>
+                        )}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {report.location_summary || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 capitalize">
+                        {report.platform || 'Unknown'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`badge ${getStatusColor(report.status)}`}>
                         {getStatusLabel(report.status)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {report.categories.slice(0, 2).map((cat) => (
-                          <span
-                            key={cat.category_id}
-                            className="badge bg-gray-100 text-gray-700 text-xs"
-                          >
-                            {cat.name}
-                          </span>
-                        ))}
-                        {report.categories.length > 2 && (
-                          <span className="badge bg-gray-100 text-gray-700 text-xs">
-                            +{report.categories.length - 2}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {report.location ? (
-                        <div className="text-sm">
-                          <p className="text-gray-900">{report.location.city || '-'}</p>
-                          <p className="text-gray-500 text-xs">
-                            {report.location.province_name || '-'}
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-400">-</span>
-                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {formatDate(report.created_at)}

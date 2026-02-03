@@ -186,3 +186,147 @@ export interface User {
   roles: string[];
   session_uid?: string;
 }
+
+export interface AdminReportDto {
+  id: string;
+  reference_number?: string;
+  title?: string;
+  status: ReportStatus;
+  platform?: string;
+  user_id?: string;
+  primary_category?: string;
+  category_count: number;
+  attachment_count: number;
+  location_summary?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminReportDetailDto {
+  id: string;
+  reference_number?: string;
+  title?: string;
+  description?: string;
+  status: ReportStatus;
+  platform?: string;
+  user_id?: string;
+  ticket_id?: string;
+  adk_thread_id?: string;
+  cluster_id?: string;
+  impact?: string;
+  timeline?: string;
+  resolution_notes?: string;
+  verified_at?: string;
+  verified_by?: string;
+  resolved_at?: string;
+  resolved_by?: string;
+  created_at: string;
+  updated_at: string;
+  categories: AdminReportCategoryDto[];
+  tags: ReportTagType[];
+  location?: AdminReportLocationDto;
+  attachments: AdminReportAttachmentDto[];
+}
+
+export interface AdminReportCategoryDto {
+  category_id: string;
+  category_name: string;
+  category_slug: string;
+  severity: ReportSeverity;
+}
+
+export interface AdminReportLocationDto {
+  raw_input: string;
+  display_name?: string;
+  lat?: number;
+  lon?: number;
+  province_name?: string;
+  regency_name?: string;
+  city?: string;
+  state?: string;
+}
+
+export interface AdminReportAttachmentDto {
+  file_id: string;
+  original_filename: string;
+  content_type: string;
+  file_size: number;
+  url: string;
+}
+
+export interface AdminTicketDto {
+  id: string;
+  reference_number: string;
+  user_id: string;
+  platform: string;
+  status: TicketStatus;
+  confidence_score: number;
+  retry_count: number;
+  has_error: boolean;
+  report_id?: string;
+  submitted_at: string;
+  processed_at?: string;
+  created_at: string;
+}
+
+export interface AdminTicketDetailDto {
+  id: string;
+  reference_number: string;
+  adk_thread_id: string;
+  user_id: string;
+  platform: string;
+  status: TicketStatus;
+  confidence_score: number;
+  completeness_score?: number;
+  retry_count: number;
+  report_id?: string;
+  error_message?: string;
+  submitted_at: string;
+  processed_at?: string;
+  last_attempt_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminContributorDto {
+  id: string;
+  submission_type: string;
+  name?: string;
+  email?: string;
+  organization_name?: string;
+  city?: string;
+  created_at: string;
+}
+
+export interface AdminContributorDetailDto {
+  id: string;
+  submission_type: string;
+  name?: string;
+  email?: string;
+  whatsapp?: string;
+  city?: string;
+  organization_name?: string;
+  organization_type?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_whatsapp?: string;
+  contact_position?: string;
+  role?: string;
+  skills?: string;
+  bio?: string;
+  portfolio_url?: string;
+  contribution_offer?: string;
+  aspiration?: string;
+  agreed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminExpectationDto {
+  id: string;
+  name?: string;
+  email?: string;
+  expectation: string;
+  created_at: string;
+}
+

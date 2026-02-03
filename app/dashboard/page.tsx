@@ -1,20 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import {
@@ -40,15 +34,43 @@ import {
   getStatusLabel,
   truncate,
 } from '@/lib/utils';
+import IndonesiaMap, { MapPoint } from '@/components/IndonesiaMap';
 
-const COLORS = ['#0ea5e9', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444'];
+const STATUSES = [
+  { key: 'draft',       label: 'Draft',       color: '#94a3b8' },  // slate-400
+  { key: 'pending',     label: 'Pending',     color: '#f59e0b' },  // amber-500
+  { key: 'verified',    label: 'Verified',    color: '#3b82f6' },  // blue-500
+  { key: 'in_progress', label: 'In Progress', color: '#8b5cf6' },  // violet-500
+  { key: 'resolved',    label: 'Resolved',    color: '#10b981' },  // emerald-500
+  { key: 'rejected',    label: 'Rejected',    color: '#ef4444' },  // red-500
+];
+
+const STATUS_COLOR_MAP = Object.fromEntries(STATUSES.map((s) => [s.key, s.color]));
+
+interface MapDataResponse {
+  success: boolean;
+  data?: {
+    points: {
+      id: string;
+      lat: number;
+      lon: number;
+      status: string;
+      category_color?: string;
+    }[];
+  };
+}
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recentReports, setRecentReports] = useState<DashboardReport[]>([]);
   const [categories, setCategories] = useState<CategoryReportSummary[]>([]);
   const [tags, setTags] = useState<TagReportSummary[]>([]);
+  const [mapPoints, setMapPoints] = useState<MapPoint[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [visibleStatuses, setVisibleStatuses] = useState<Set<string>>(
+    () => new Set(STATUSES.map((s) => s.key))
+  );
 
   useEffect(() => {
     loadDashboardData();
@@ -58,22 +80,47 @@ export default function DashboardPage() {
     try {
       setLoading(true);
 
-      const [summaryRes, reportsRes, categoriesRes, tagsRes] = await Promise.all([
+      const [summaryRes, reportsRes, categoriesRes, tagsRes, mapRes] = await Promise.all([
         apiClient.getDashboardSummary(),
         apiClient.getRecentReports(7, 5),
         apiClient.getReportsByCategory(undefined, 1, 10),
         apiClient.getReportsByTag(undefined, 1, 10),
+        apiClient.getMapMarkers(),
       ]);
 
       if (summaryRes.success) setSummary(summaryRes.data);
       if (reportsRes.success) setRecentReports(reportsRes.data.reports || []);
       if (categoriesRes.success) setCategories(categoriesRes.data.categories || []);
       if (tagsRes.success) setTags(tagsRes.data.tags || []);
+      if (mapRes.success && mapRes.data?.points) {
+        setMapPoints(mapRes.data.points);
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const toggleStatus = (key: string) => {
+    setVisibleStatuses((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    mapPoints.forEach((p) => {
+      counts[p.status] = (counts[p.status] || 0) + 1;
+    });
+    return counts;
+  }, [mapPoints]);
+
+  const handlePointClick = (point: MapPoint) => {
+    window.location.href = `/dashboard/reports/${point.id}`;
   };
 
   if (loading) {
@@ -86,17 +133,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const statusDistribution = summary
-    ? [
-        { name: 'Pending', value: summary.pending_count },
-        { name: 'Resolved', value: summary.resolved_count },
-        {
-          name: 'Others',
-          value: Math.max(0, summary.total_reports - summary.pending_count - summary.resolved_count),
-        },
-      ]
-    : [];
 
   const tagChartData = tags.map((tag) => ({
     name: tag.label,
@@ -160,33 +196,49 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Status Distribution */}
         <div className="card animate-slide-up" style={{ animationDelay: '0.4s' }}>
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={statusDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {statusDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Report Locations</h3>
+            <span className="text-xs text-gray-400">{mapPoints.length} pin{mapPoints.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          <IndonesiaMap
+            points={mapPoints}
+            visibleStatuses={visibleStatuses}
+            statusColors={STATUS_COLOR_MAP}
+            onPointClick={handlePointClick}
+          />
+
+          <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2">
+            {STATUSES.map((s) => {
+              const active = visibleStatuses.has(s.key);
+              const count = statusCounts[s.key] || 0;
+              if (count === 0) return null; 
+              return (
+                <button
+                  key={s.key}
+                  onClick={() => toggleStatus(s.key)}
+                  className={`flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 border transition-all duration-150
+                    ${active
+                      ? 'bg-white border-gray-200 text-gray-700 shadow-sm'
+                      : 'bg-gray-100 border-transparent text-gray-400'
+                    }`}
+                >
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: active ? s.color : '#cbd5e1' }}
+                  />
+                  {s.label}
+                  <span className={`ml-0.5 ${active ? 'text-gray-500' : 'text-gray-300'}`}>
+                    ({count})
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Top Categories */}
         <div className="card animate-slide-up" style={{ animationDelay: '0.5s' }}>
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Top Categories</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -201,7 +253,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Report Types */}
       <div className="card animate-slide-up" style={{ animationDelay: '0.6s' }}>
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Report Types Distribution</h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -215,7 +266,6 @@ export default function DashboardPage() {
         </ResponsiveContainer>
       </div>
 
-      {/* Recent Reports */}
       <div className="card animate-slide-up" style={{ animationDelay: '0.7s' }}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Recent Reports</h3>
