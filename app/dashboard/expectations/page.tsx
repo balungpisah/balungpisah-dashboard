@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Search, ChevronLeft, ChevronRight, Eye, Mail, Calendar } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { AdminExpectationDto } from '@/lib/types';
@@ -20,14 +20,10 @@ export default function ExpectationsPage() {
   const [toDate, setToDate] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
-  useEffect(() => {
-    loadExpectations();
-  }, [page, emailFilter, sortOrder, fromDate, toDate]);
-
-  const loadExpectations = async () => {
+  const loadExpectations = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const params = {
         page,
         pageSize: PAGE_SIZE,
@@ -37,29 +33,29 @@ export default function ExpectationsPage() {
         toDate: toDate || undefined,
         sort: sortOrder,
       };
-      
+
       console.log('Fetching expectations with params:', params);
-      
+
       const response = await apiClient.getExpectations(params);
 
       console.log('API Response:', {
         success: response.success,
         dataLength: response.data?.length,
-        meta: response.meta
+        meta: response.meta,
       });
 
       if (response.success) {
         const data = response.data || [];
         const total = response.meta?.total || 0;
         const pages = Math.ceil(total / PAGE_SIZE);
-        
+
         console.log('Setting state:', {
           dataCount: data.length,
           total,
           pages,
-          currentPage: page
+          currentPage: page,
         });
-        
+
         setExpectations(data);
         setTotalItems(total);
         setTotalPages(pages);
@@ -69,7 +65,11 @@ export default function ExpectationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, searchTerm, emailFilter, fromDate, toDate, sortOrder]);
+
+  useEffect(() => {
+    loadExpectations();
+  }, [loadExpectations]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,10 +87,10 @@ export default function ExpectationsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Expectations</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Expectations</h1>
           <p className="text-gray-600">
             User expectations from landing page ({formatNumber(totalItems)} total)
           </p>
@@ -100,29 +100,25 @@ export default function ExpectationsPage() {
       {/* Filters */}
       <div className="card">
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Search */}
             <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search in name or expectation..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input pl-11 w-full"
+                  className="input w-full pl-11"
                 />
               </div>
             </div>
 
             {/* Email Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Status
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Email Status</label>
               <select
                 value={emailFilter}
                 onChange={(e) => {
@@ -139,9 +135,7 @@ export default function ExpectationsPage() {
 
             {/* Sort Order */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sort By
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Sort By</label>
               <select
                 value={sortOrder}
                 onChange={(e) => {
@@ -157,11 +151,9 @@ export default function ExpectationsPage() {
 
             {/* From Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                From Date
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">From Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <input
                   type="date"
                   value={fromDate}
@@ -169,18 +161,16 @@ export default function ExpectationsPage() {
                     setFromDate(e.target.value);
                     setPage(1);
                   }}
-                  className="input pl-11 w-full"
+                  className="input w-full pl-11"
                 />
               </div>
             </div>
 
             {/* To Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                To Date
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">To Date</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <input
                   type="date"
                   value={toDate}
@@ -188,7 +178,7 @@ export default function ExpectationsPage() {
                     setToDate(e.target.value);
                     setPage(1);
                   }}
-                  className="input pl-11 w-full"
+                  className="input w-full pl-11"
                 />
               </div>
             </div>
@@ -199,11 +189,7 @@ export default function ExpectationsPage() {
             <button type="submit" className="btn-primary">
               Apply Filters
             </button>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="btn-secondary"
-            >
+            <button type="button" onClick={handleReset} className="btn-secondary">
               Reset
             </button>
           </div>
@@ -214,31 +200,31 @@ export default function ExpectationsPage() {
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Name
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Email
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Expectation
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Submitted
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
                     </div>
                   </td>
                 </tr>
@@ -250,16 +236,14 @@ export default function ExpectationsPage() {
                 </tr>
               ) : (
                 expectations.map((expectation) => (
-                  <tr key={expectation.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={expectation.id} className="transition-colors hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">
-                        {expectation.name || 'Anonymous'}
-                      </p>
+                      <p className="font-medium text-gray-900">{expectation.name || 'Anonymous'}</p>
                     </td>
                     <td className="px-6 py-4">
                       {expectation.email ? (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Mail className="w-4 h-4" />
+                          <Mail className="h-4 w-4" />
                           {expectation.email}
                         </div>
                       ) : (
@@ -267,7 +251,7 @@ export default function ExpectationsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-900 line-clamp-2">
+                      <p className="line-clamp-2 text-sm text-gray-900">
                         {expectation.expectation}
                       </p>
                     </td>
@@ -275,8 +259,8 @@ export default function ExpectationsPage() {
                       {formatDate(expectation.created_at)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium">
-                        <Eye className="w-4 h-4" />
+                      <button className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700">
+                        <Eye className="h-4 w-4" />
                         View
                       </button>
                     </td>
@@ -289,40 +273,41 @@ export default function ExpectationsPage() {
 
         {/* Pagination */}
         {!loading && expectations.length > 0 && totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="border-t border-gray-200 px-6 py-4">
+            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <p className="text-sm text-gray-600">
-                Showing {((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, totalItems)} of {formatNumber(totalItems)} results
+                Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, totalItems)} of{' '}
+                {formatNumber(totalItems)} results
               </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(1)}
                   disabled={page === 1}
-                  className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   First
                 </button>
                 <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm text-gray-600 px-4">
+                <span className="px-4 text-sm text-gray-600">
                   Page {page} of {totalPages}
                 </span>
                 <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setPage(totalPages)}
                   disabled={page === totalPages}
-                  className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Last
                 </button>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Users, Search, ChevronLeft, ChevronRight, Eye, Mail, Building } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Search, ChevronLeft, ChevronRight, Eye, Mail, Building } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { AdminContributorDto } from '@/lib/types';
 import { formatDate, formatNumber } from '@/lib/utils';
@@ -16,11 +16,7 @@ export default function ContributorsPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const pageSize = 20;
 
-  useEffect(() => {
-    loadContributors();
-  }, [page, typeFilter]);
-
-  const loadContributors = async () => {
+  const loadContributors = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.getContributors({
@@ -40,7 +36,11 @@ export default function ContributorsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, searchTerm, typeFilter]);
+
+  useEffect(() => {
+    loadContributors();
+  }, [loadContributors]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,10 +49,10 @@ export default function ContributorsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Contributors</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Contributors</h1>
           <p className="text-gray-600">
             Manage contributor registrations ({formatNumber(totalItems)} total)
           </p>
@@ -60,10 +60,10 @@ export default function ContributorsPage() {
       </div>
 
       <div className="card">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+        <form onSubmit={handleSearch} className="flex flex-col gap-4 md:flex-row">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search by name, email, or organization..."
@@ -91,37 +91,37 @@ export default function ContributorsPage() {
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Name
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Type
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Email
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Organization
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   City
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Registered
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
                     </div>
                   </td>
                 </tr>
@@ -133,25 +133,27 @@ export default function ContributorsPage() {
                 </tr>
               ) : (
                 contributors.map((contributor) => (
-                  <tr key={contributor.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={contributor.id} className="transition-colors hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">
-                        {contributor.name || 'Anonymous'}
-                      </p>
+                      <p className="font-medium text-gray-900">{contributor.name || 'Anonymous'}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`badge ${
-                        contributor.submission_type === 'organization' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {contributor.submission_type === 'organization' ? 'Organization' : 'Personal'}
+                      <span
+                        className={`badge ${
+                          contributor.submission_type === 'organization'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {contributor.submission_type === 'organization'
+                          ? 'Organization'
+                          : 'Personal'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       {contributor.email ? (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Mail className="w-4 h-4" />
+                          <Mail className="h-4 w-4" />
                           {contributor.email}
                         </div>
                       ) : (
@@ -161,22 +163,20 @@ export default function ContributorsPage() {
                     <td className="px-6 py-4">
                       {contributor.organization_name ? (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Building className="w-4 h-4" />
+                          <Building className="h-4 w-4" />
                           {contributor.organization_name}
                         </div>
                       ) : (
                         <span className="text-sm text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {contributor.city || '-'}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{contributor.city || '-'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {formatDate(contributor.created_at)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium">
-                        <Eye className="w-4 h-4" />
+                      <button className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700">
+                        <Eye className="h-4 w-4" />
                         View
                       </button>
                     </td>
@@ -188,7 +188,7 @@ export default function ContributorsPage() {
         </div>
 
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4">
             <p className="text-sm text-gray-600">
               Page {page} of {totalPages}
             </p>
@@ -196,16 +196,16 @@ export default function ContributorsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>

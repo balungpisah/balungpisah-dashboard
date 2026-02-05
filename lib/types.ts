@@ -63,7 +63,7 @@ export interface ReportLocationInfo {
   state?: string;
 }
 
-export type ReportStatus = 
+export type ReportStatus =
   | 'draft'
   | 'pending'
   | 'verified'
@@ -73,12 +73,7 @@ export type ReportStatus =
 
 export type ReportSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-export type ReportTagType = 
-  | 'report'
-  | 'proposal'
-  | 'complaint'
-  | 'inquiry'
-  | 'appreciation';
+export type ReportTagType = 'report' | 'proposal' | 'complaint' | 'inquiry' | 'appreciation';
 
 export interface CategoryReportSummary {
   id: string;
@@ -128,11 +123,7 @@ export interface Ticket {
   created_at: string;
 }
 
-export type TicketStatus = 
-  | 'submitted'
-  | 'processing'
-  | 'completed'
-  | 'failed';
+export type TicketStatus = 'submitted' | 'processing' | 'completed' | 'failed';
 
 export interface Category {
   id: string;
@@ -329,4 +320,3 @@ export interface AdminExpectationDto {
   expectation: string;
   created_at: string;
 }
-

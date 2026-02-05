@@ -5,6 +5,7 @@ A modern, responsive admin dashboard built with Next.js 15, TypeScript, and Tail
 ## Features
 
 ### Dashboard Overview
+
 - Real-time statistics and metrics
 - Interactive charts using Recharts
   - Status distribution (Pie chart)
@@ -14,6 +15,7 @@ A modern, responsive admin dashboard built with Next.js 15, TypeScript, and Tail
 - Weekly and monthly trends
 
 ### Reports Management
+
 - Comprehensive report listing with pagination
 - Advanced search and filtering
 - Detailed report view with all metadata
@@ -23,6 +25,7 @@ A modern, responsive admin dashboard built with Next.js 15, TypeScript, and Tail
 - Timeline and impact tracking
 
 ### Tickets Tracking
+
 - View all citizen report tickets
 - Reference number tracking
 - Status monitoring
@@ -30,16 +33,19 @@ A modern, responsive admin dashboard built with Next.js 15, TypeScript, and Tail
 - Platform identification
 
 ### Categories & Locations
+
 - Category-wise report distribution
 - Province-level location analysis
 - Visual representation with icons and colors
 
 ### Settings
+
 - Rate limit configuration management
 - Real-time updates
 - Admin-only access control
 
 ### Modern UI/UX
+
 - Responsive design for all screen sizes
 - Smooth animations and transitions
 - Clean, professional interface
@@ -65,17 +71,20 @@ A modern, responsive admin dashboard built with Next.js 15, TypeScript, and Tail
 ## Installation
 
 1. **Clone or extract the project**:
+
    ```bash
    cd balungpisah-dashboard
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Configure environment variables**:
    Create a `.env.local` file in the root directory:
+
    ```env
    NEXT_PUBLIC_API_URL=http://localhost:8000
    ```
@@ -83,6 +92,7 @@ A modern, responsive admin dashboard built with Next.js 15, TypeScript, and Tail
    Replace `http://localhost:8000` with actual balungpisah-core API URL.
 
 4. **Start the development server**:
+
    ```bash
    npm run dev
    ```
@@ -131,10 +141,12 @@ balungpisah-dashboard/
 The dashboard integrates with the following API endpoints:
 
 ### Authentication
+
 - `POST /api/auth/login` - User login
 - `GET /api/auth/me` - Get current user
 
 ### Dashboard
+
 - `GET /api/dashboard/summary` - Dashboard statistics
 - `GET /api/dashboard/recent` - Recent reports
 - `GET /api/dashboard/by-category` - Reports by category
@@ -143,14 +155,17 @@ The dashboard integrates with the following API endpoints:
 - `GET /api/dashboard/map` - Map data
 
 ### Reports
+
 - `GET /api/dashboard/reports` - List all reports
 - `GET /api/dashboard/reports/{id}` - Get report details
 - `PATCH /api/reports/{id}/status` - Update report status
 
 ### Tickets
+
 - `GET /api/tickets` - List all tickets
 
 ### Settings
+
 - `GET /api/admin/rate-limits` - Get rate limit configs
 - `PUT /api/admin/rate-limits/{key}` - Update rate limit
 
@@ -200,14 +215,17 @@ Charts are configured in `app/dashboard/page.tsx` using Recharts. Refer to [Rech
 ## Troubleshooting
 
 ### CORS Issues
+
 If you encounter CORS errors, ensure balungpisah-core API allows requests from `http://localhost:3000` during development.
 
 ### Authentication Errors
+
 - Check that `NEXT_PUBLIC_API_URL` is set correctly
 - Verify balungpisah-core API is running and accessible
 - Check browser console for detailed error messages
 
 ### Build Errors
+
 - Clear `.next` folder: `rm -rf .next`
 - Delete `node_modules` and reinstall: `rm -rf node_modules && npm install`
 
