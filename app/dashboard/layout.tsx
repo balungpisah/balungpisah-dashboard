@@ -11,6 +11,7 @@ import {
   MapPin,
   Lightbulb,
   Users,
+  MessageSquareText,
   Settings,
   Menu,
   X,
@@ -28,6 +29,7 @@ const menuItems = [
   { icon: MapPin, label: 'Locations', href: '/dashboard/locations' },
   { icon: Lightbulb, label: 'Expectations', href: '/dashboard/expectations' },
   { icon: Users, label: 'Contributors', href: '/dashboard/contributors' },
+  { icon: MessageSquareText, label: 'Prompts', href: '/dashboard/prompts' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 

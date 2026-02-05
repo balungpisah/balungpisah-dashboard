@@ -111,3 +111,11 @@ export function formatNumber(num: number): string {
 export function formatPercentage(value: number, total: number = 100) {
   return (value / total) * 100;
 }
+
+export function getPromptStatusColor(isActive: boolean): string {
+  return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+}
+
+export function getPromptStatusLabel(isActive: boolean): string {
+  return isActive ? 'Active' : 'Inactive';
+}
