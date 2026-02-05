@@ -4,6 +4,6 @@ const nextConfig = {
   images: {
     domains: ['core.balungpisah.id'], // Add your API domain here
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

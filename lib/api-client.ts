@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -74,7 +74,12 @@ class ApiClient {
     return response.data;
   }
 
-  async getReportsByLocation(provinceId?: string, regencyId?: string, page: number = 1, pageSize: number = 10) {
+  async getReportsByLocation(
+    provinceId?: string,
+    regencyId?: string,
+    page: number = 1,
+    pageSize: number = 10
+  ) {
     const response = await this.client.get('/api/dashboard/by-location', {
       params: { province_id: provinceId, regency_id: regencyId, page, page_size: pageSize },
     });
@@ -285,12 +290,11 @@ class ApiClient {
     });
     return response.data;
   }
-  
+
   async getMapMarkers() {
     const response = await this.client.get('/api/dashboard/map-data');
     return response.data;
   }
-
 }
 
 export const apiClient = new ApiClient();

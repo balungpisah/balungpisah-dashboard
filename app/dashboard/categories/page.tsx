@@ -45,29 +45,31 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Categories</h1>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">Categories</h1>
         <p className="text-gray-600">Report categories and their distribution</p>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => {
-            const faIcon = category.icon ? iconMap[category.icon] || 'fa-circle-question' : 'fa-circle-question';
-            
+            const faIcon = category.icon
+              ? iconMap[category.icon] || 'fa-circle-question'
+              : 'fa-circle-question';
+
             return (
-              <div key={category.id} className="card hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-4">
+              <div key={category.id} className="card transition-shadow hover:shadow-lg">
+                <div className="mb-4 flex items-start justify-between">
                   <div
-                    className="w-12 h-12 rounded-lg flex items-center justify-center"
+                    className="flex h-12 w-12 items-center justify-center rounded-lg"
                     style={{ backgroundColor: category.color + '20' || '#e5e7eb' }}
                   >
-                    <i 
+                    <i
                       className={`fa-solid ${faIcon} text-2xl`}
                       style={{ color: category.color || '#6b7280' }}
                     ></i>
@@ -79,7 +81,7 @@ export default function CategoriesPage() {
                     <p className="text-sm text-gray-500">reports</p>
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
+                <h3 className="mb-2 text-lg font-semibold text-gray-900">{category.name}</h3>
                 {category.description && (
                   <p className="text-sm text-gray-600">{category.description}</p>
                 )}

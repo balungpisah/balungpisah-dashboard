@@ -1,23 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import {
-  Search,
-  Filter,
-  Download,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { Search, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { AdminReportDto } from '@/lib/types';
-import {
-  formatDate,
-  getStatusColor,
-  getStatusLabel,
-  formatNumber,
-} from '@/lib/utils';
+import { formatDate, getStatusColor, getStatusLabel, formatNumber } from '@/lib/utils';
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<AdminReportDto[]>([]);
@@ -29,11 +17,7 @@ export default function ReportsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const pageSize = 20;
 
-  useEffect(() => {
-    loadReports();
-  }, [page, statusFilter]);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.getReports({
@@ -53,7 +37,11 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,27 +52,27 @@ export default function ReportsPage() {
   const filteredReports = reports;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Reports</h1>
           <p className="text-gray-600">
             Manage and monitor all citizen reports ({formatNumber(totalItems)} total)
           </p>
         </div>
         <button className="btn-primary flex items-center gap-2">
-          <Download className="w-4 h-4" />
+          <Download className="h-4 w-4" />
           Export
         </button>
       </div>
 
       {/* Filters */}
       <div className="card">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+        <form onSubmit={handleSearch} className="flex flex-col gap-4 md:flex-row">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search by reference number or title..."
@@ -117,40 +105,40 @@ export default function ReportsPage() {
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Reference
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Title
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Category
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Location
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Platform
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Date
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center">
-                      <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
                     </div>
                   </td>
                 </tr>
@@ -162,7 +150,7 @@ export default function ReportsPage() {
                 </tr>
               ) : (
                 filteredReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={report.id} className="transition-colors hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <span className="font-mono text-sm text-gray-900">
                         {report.reference_number || 'N/A'}
@@ -179,7 +167,7 @@ export default function ReportsPage() {
                           {report.primary_category || 'Uncategorized'}
                         </span>
                         {report.category_count > 1 && (
-                          <span className="badge bg-gray-100 text-gray-600 text-xs">
+                          <span className="badge bg-gray-100 text-xs text-gray-600">
                             +{report.category_count - 1}
                           </span>
                         )}
@@ -189,7 +177,7 @@ export default function ReportsPage() {
                       {report.location_summary || 'Unknown'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 capitalize">
+                      <span className="text-sm capitalize text-gray-600">
                         {report.platform || 'Unknown'}
                       </span>
                     </td>
@@ -204,9 +192,9 @@ export default function ReportsPage() {
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/dashboard/reports/${report.id}`}
-                        className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="h-4 w-4" />
                         View
                       </Link>
                     </td>
@@ -219,7 +207,7 @@ export default function ReportsPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4">
             <p className="text-sm text-gray-600">
               Page {page} of {totalPages}
             </p>
@@ -227,16 +215,16 @@ export default function ReportsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn-secondary px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>

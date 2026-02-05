@@ -1,17 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ArrowLeft,
-  MapPin,
-  Calendar,
-  Tag,
-  FileText,
-  Save,
-  Clock,
-} from 'lucide-react';
+import { ArrowLeft, MapPin, Tag, FileText, Save, Clock } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { ReportDetail, ReportStatus } from '@/lib/types';
 import {
@@ -34,7 +26,6 @@ const statusOptions: ReportStatus[] = [
 
 export default function ReportDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [report, setReport] = useState<ReportDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -79,8 +70,9 @@ export default function ReportDetailPage() {
         await loadReport(report.id);
         alert('Status updated successfully!');
       }
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to update status');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      alert(err.response?.data?.message || 'Failed to update status');
     } finally {
       setUpdating(false);
     }
@@ -88,9 +80,9 @@ export default function ReportDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
           <p className="text-gray-600">Loading report...</p>
         </div>
       </div>
@@ -99,8 +91,8 @@ export default function ReportDetailPage() {
 
   if (!report) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600 mb-4">Report not found</p>
+      <div className="py-12 text-center">
+        <p className="mb-4 text-gray-600">Report not found</p>
         <Link href="/dashboard/reports" className="btn-primary">
           Back to Reports
         </Link>
@@ -109,26 +101,23 @@ export default function ReportDetailPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
         <Link
           href="/dashboard/reports"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="rounded-lg p-2 transition-colors hover:bg-gray-100"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{report.title}</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">{report.title}</h1>
           <div className="flex flex-wrap gap-2">
             <span className={`badge ${getStatusColor(report.status)}`}>
               {getStatusLabel(report.status)}
             </span>
             {report.categories.map((cat) => (
-              <span
-                key={cat.category_id}
-                className={`badge ${getSeverityColor(cat.severity)}`}
-              >
+              <span key={cat.category_id} className={`badge ${getSeverityColor(cat.severity)}`}>
                 {cat.name} - {getSeverityLabel(cat.severity)}
               </span>
             ))}
@@ -136,42 +125,42 @@ export default function ReportDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           {/* Description */}
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5" />
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <FileText className="h-5 w-5" />
               Description
             </h2>
-            <p className="text-gray-700 whitespace-pre-wrap">{report.description}</p>
+            <p className="whitespace-pre-wrap text-gray-700">{report.description}</p>
           </div>
 
           {/* Timeline */}
           {report.timeline && (
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5" />
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Clock className="h-5 w-5" />
                 Timeline
               </h2>
-              <p className="text-gray-700 whitespace-pre-wrap">{report.timeline}</p>
+              <p className="whitespace-pre-wrap text-gray-700">{report.timeline}</p>
             </div>
           )}
 
           {/* Impact */}
           {report.impact && (
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Impact</h2>
-              <p className="text-gray-700 whitespace-pre-wrap">{report.impact}</p>
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">Impact</h2>
+              <p className="whitespace-pre-wrap text-gray-700">{report.impact}</p>
             </div>
           )}
 
           {/* Location */}
           {report.location && (
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <MapPin className="h-5 w-5" />
                 Location
               </h2>
               <div className="space-y-2 text-gray-700">
@@ -202,12 +191,10 @@ export default function ReportDetailPage() {
         <div className="space-y-6">
           {/* Status Update */}
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Update Status</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Update Status</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Status</label>
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as ReportStatus)}
@@ -222,7 +209,7 @@ export default function ReportDetailPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Resolution Notes (Optional)
                 </label>
                 <textarea
@@ -237,16 +224,16 @@ export default function ReportDetailPage() {
               <button
                 onClick={handleUpdateStatus}
                 disabled={updating || newStatus === report.status}
-                className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {updating ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                     Updating...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
+                    <Save className="h-4 w-4" />
                     Update Status
                   </>
                 )}
@@ -256,35 +243,35 @@ export default function ReportDetailPage() {
 
           {/* Metadata */}
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Information</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Information</h2>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-gray-500 mb-1">Report ID</p>
+                <p className="mb-1 text-gray-500">Report ID</p>
                 <p className="font-mono text-xs text-gray-900">{report.id}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">Ticket ID</p>
+                <p className="mb-1 text-gray-500">Ticket ID</p>
                 <p className="font-mono text-xs text-gray-900">{report.ticket_id}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">Created</p>
+                <p className="mb-1 text-gray-500">Created</p>
                 <p className="text-gray-900">{formatDateTime(report.created_at)}</p>
                 <p className="text-xs text-gray-500">{formatRelativeTime(report.created_at)}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">Last Updated</p>
+                <p className="mb-1 text-gray-500">Last Updated</p>
                 <p className="text-gray-900">{formatDateTime(report.updated_at)}</p>
                 <p className="text-xs text-gray-500">{formatRelativeTime(report.updated_at)}</p>
               </div>
               {report.verified_at && (
                 <div>
-                  <p className="text-gray-500 mb-1">Verified</p>
+                  <p className="mb-1 text-gray-500">Verified</p>
                   <p className="text-gray-900">{formatDateTime(report.verified_at)}</p>
                 </div>
               )}
               {report.resolved_at && (
                 <div>
-                  <p className="text-gray-500 mb-1">Resolved</p>
+                  <p className="mb-1 text-gray-500">Resolved</p>
                   <p className="text-gray-900">{formatDateTime(report.resolved_at)}</p>
                 </div>
               )}
@@ -294,11 +281,11 @@ export default function ReportDetailPage() {
           {/* Tag Type */}
           {report.tag_type && (
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Tag className="w-5 h-5" />
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Tag className="h-5 w-5" />
                 Type
               </h2>
-              <span className="badge bg-primary-100 text-primary-800 text-sm">
+              <span className="badge bg-primary-100 text-sm text-primary-800">
                 {report.tag_type}
               </span>
             </div>
