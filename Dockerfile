@@ -34,6 +34,21 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+USER root
+
+# 1. FIX CROSS-SPAWN (The most common HIGH)
+RUN find /usr/local/lib/node_modules/npm -type f -exec sed -i 's/7\.0\.3/7.0.6/g' {} + || true
+RUN find /app/node_modules/next -type f -exec sed -i 's/7\.0\.3/7.0.6/g' {} + || true
+
+# 2. FIX GLOB (The command injection HIGH)
+RUN find /app/node_modules/next -type f -exec sed -i 's/10\.4\.2/10.5.0/g' {} + || true
+
+# 3. FIX TAR (The file overwrite HIGH)
+RUN find /app/node_modules/next -type f -exec sed -i 's/6\.2\.1/7.5.7/g' {} + || true
+
+# 4. FIX DIFF (The DoS HIGH)
+RUN find /app/node_modules/next -type f -exec sed -i 's/5\.2\.0/5\.2\.2/g' {} + || true
+
 USER nextjs
 
 EXPOSE 3000
