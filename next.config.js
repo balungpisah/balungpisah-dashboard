@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   images: {
-    domains: ['core.balungpisah.id'], // Add your API domain here
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'core.balungpisah.id',
+        pathname: '**',
+      },
+    ],
   },
 };
 

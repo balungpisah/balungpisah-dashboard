@@ -1,16 +1,23 @@
 services:
-  next-app:
+  dashboard:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: balungpisah-dashboard
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /app/.next/cache:uid=1001,gid=1001
     ports:
       - '${PORT:-3000}:3000'
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     restart: always
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   default:
-    name: nextjs-network
+    name: dashboard-network
