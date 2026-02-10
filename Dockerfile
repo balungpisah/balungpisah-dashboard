@@ -22,26 +22,23 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy essential files
 COPY --from=builder /app/public ./public
+
+# Set up the standalone server
+# Note: The standalone build creates a 'server.js' file
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# --- THE FIX ---
-# Since we are in /app, and standalone copies its own node_modules here:
-USER root
-RUN rm -rf /app/node_modules/next/dist/compiled/cross-spawn && \
-    rm -rf /app/node_modules/next/dist/compiled/micromatch
-# (Added micromatch just in case, as it's often the second thing Trivy flags)
-
 USER nextjs
-# ----------------
 
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+
 
 CMD ["node", "server.js"]
