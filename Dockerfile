@@ -2,6 +2,8 @@
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+RUN npm install -g npm@latest
+
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
@@ -13,20 +15,22 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Stage 3: Runner (The Secure Part)
+# Stage 3: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# CRITICAL: Only copy the standalone build files
-# This version doesn't need the massive node_modules folder
+# Copy essential files
 COPY --from=builder /app/public ./public
+
+# Set up the standalone server
+# Note: The standalone build creates a 'server.js' file
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -34,6 +38,6 @@ USER nextjs
 
 EXPOSE 3000
 ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
-# Start with node directly, bypassing npm/shell
 CMD ["node", "server.js"]
