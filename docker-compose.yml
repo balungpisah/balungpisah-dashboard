@@ -10,7 +10,7 @@ services:
       - /run
       - /app/.next/cache:uid=1001,gid=1001
     ports:
-      - '${PORT:-3000}:3000'
+      - '127.0.0.1:${PORT:-3000}:3000'
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
