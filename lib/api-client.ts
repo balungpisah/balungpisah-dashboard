@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { CreatePromptDto, PromptKeyDefinition, UpdatePromptDto } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -293,6 +294,54 @@ class ApiClient {
 
   async getMapMarkers() {
     const response = await this.client.get('/api/dashboard/map-data');
+    return response.data;
+  }
+
+  // Prompts (Admin)
+  async getPrompts(filters?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    isActive?: boolean;
+  }) {
+    const response = await this.client.get('/api/admin/prompts', {
+      params: {
+        page: filters?.page || 1,
+        page_size: filters?.pageSize || 10,
+        search: filters?.search,
+        is_active: filters?.isActive,
+      },
+    });
+    return response.data;
+  }
+
+  async getPromptKeys(): Promise<{ success: boolean; data?: PromptKeyDefinition[] }> {
+    const response = await this.client.get('/api/admin/prompts/keys');
+    return response.data;
+  }
+
+  async getPrompt(id: string) {
+    const response = await this.client.get(`/api/admin/prompts/${id}`);
+    return response.data;
+  }
+
+  async createPrompt(data: CreatePromptDto) {
+    const response = await this.client.post('/api/admin/prompts', data);
+    return response.data;
+  }
+
+  async updatePrompt(id: string, data: UpdatePromptDto) {
+    const response = await this.client.put(`/api/admin/prompts/${id}`, data);
+    return response.data;
+  }
+
+  async deletePrompt(id: string) {
+    const response = await this.client.delete(`/api/admin/prompts/${id}`);
+    return response.data;
+  }
+
+  async restorePrompt(id: string) {
+    const response = await this.client.post(`/api/admin/prompts/${id}/restore`);
     return response.data;
   }
 }

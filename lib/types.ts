@@ -320,3 +320,38 @@ export interface AdminExpectationDto {
   expectation: string;
   created_at: string;
 }
+
+export interface PromptResponseDto {
+  id: string;
+  key: string;
+  name: string;
+  description?: string;
+  template_content: string;
+  variables?: Record<string, unknown>;
+  is_active: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePromptDto {
+  key: string;
+  name: string;
+  description?: string;
+  template_content: string;
+  variables?: Record<string, unknown>;
+}
+
+export interface UpdatePromptDto {
+  name?: string;
+  description?: string;
+  template_content?: string;
+  variables?: Record<string, unknown>;
+}
+
+export interface PromptKeyDefinition {
+  key: string;
+  description: string;
+}
+
+export type SortDirection = 'asc' | 'desc';
